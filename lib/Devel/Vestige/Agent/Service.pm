@@ -1,7 +1,7 @@
 package Devel::Vestige::Agent::Service;
 
 use Moo;
-use Method::Signatures;
+use Method::Signatures::Simple;
 use JSON qw( encode_json decode_json );
 
 use constant PROTOCOL_VERSION => 10;
@@ -37,7 +37,8 @@ method connect_settings() {
   };
 }
 
-method connect($settings = {}) {
+method connect($settings) {
+  $settings //= {};
   $settings = { %{ $self->connect_settings() }, %$settings };
   my $host = $self->get_redirect_host;
   $self->host($host->{return_value});
@@ -47,12 +48,12 @@ method connect($settings = {}) {
   return $response;
 }
 
-sub get_redirect_host {
-  my ($self) = @_;
+method get_redirect_host {
   return $self->invoke_remote('get_redirect_host');
 }
 
-method invoke_remote($method, $args = {}) {
+method invoke_remote($method, $args) {
+  $args //= {};
   my $data = encode_json [$args];
   my $response = $self->send_request(
     data => $data,
@@ -63,8 +64,7 @@ method invoke_remote($method, $args = {}) {
   return decode_json $response;
 }
 
-sub send_request {
-  my ($self, %opts) = @_;
+method send_request(%opts) {
   debug uri => $opts{uri}, content => $opts{data};
   my $ua = LWP::UserAgent->new;
 
@@ -82,8 +82,7 @@ sub send_request {
   return $response->content;
 }
 
-sub remote_method_uri {
-  my ($self, $method) = @_;
+method remote_method_uri($method) {
   my $params = {
     run_id => $self->agent_id,
     marshal_format => 'json',
