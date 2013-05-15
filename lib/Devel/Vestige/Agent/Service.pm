@@ -3,7 +3,6 @@ package Devel::Vestige::Agent::Service;
 use Moo;
 use Method::Signatures;
 use JSON qw( encode_json decode_json );
-use Data::Printer;
 
 use constant PROTOCOL_VERSION => 10;
 
@@ -12,10 +11,12 @@ has license_key => (is => 'rw');
 has host => (is => 'rw', default => sub { 'collector.newrelic.com' });
 
 sub debug(@) {
+  eval "use Data::Printer";
+  return if $@;
   my (@things) = @_;
   foreach my $thing (@_) {
     if(ref $thing) {
-      p $thing;
+      Data::Printer::p($thing);
     } else {
       $thing ||= '';
       print STDERR $thing;
